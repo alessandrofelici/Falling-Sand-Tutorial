@@ -174,7 +174,7 @@ export function clearGrid() {
  */
 export function checkBounds(row, col) {
     // TODO make sure row and col are within the grid
-    return true;
+    return row < numberOfRows && row >= 0 && col < numberOfColumns && col >=0;
 }
 
 /**
@@ -191,7 +191,17 @@ export function checkBounds(row, col) {
  * @returns {boolean} If the particle was moved or not
  */
 export function moveParticle(row, col, newRow, newCol, swap) {
-    // TODO move a particle from (row, col) to (newRow, newCol)
+    // Check if location is valid
+    if (!checkBounds(row, col) || !checkBounds(newRow, newCol)) {
+        return false;
+    }
+    // Check for existing particle
+    if (getParticle(newRow, newCol)) {
+        return false;
+    }
+    // Move a particle from (row, col) to (newRow, newCol)
+    grid[newRow][newCol] = grid[row][col];
+    grid[row][col] = null;
     return true;
 }
 
@@ -205,7 +215,15 @@ export function redraw() {
     // Loop through all elements in the grid
     for (let row = 0; row < grid.length; row++) {
         for (let col = 0; col < grid[0].length; col++) {
-            // TODO draw particles to screen
+            const particle = grid[row][col];
+
+            // Check if there is a particle at (row, col). (null == false)
+            if (particle) {
+                // Get particle color
+                ctx.fillStyle = particle.color;
+                // Draw particle
+                ctx.fillRect(col*eachSize, row*eachSize, eachSize, eachSize);
+            }
         }
     }
 }
