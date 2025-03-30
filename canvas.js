@@ -158,9 +158,9 @@ export function setUpMouseListeners() {
  * Clears grid of all particles
  */
 export function clearGrid() {
-    for (let row = 0; row < grid.length; row++) {
+    for (const element of grid) {
         for (let col = 0; col < grid[0].length; col++) {
-            grid[row][col] = null;
+            element[col] = null;
         }
     }
 }
@@ -173,7 +173,7 @@ export function clearGrid() {
  * @returns {boolean}
  */
 export function checkBounds(row, col) {
-    // TODO make sure row and col are within the grid
+    // Make sure row and col are within the grid
     return row < numberOfRows && row >= 0 && col < numberOfColumns && col >=0;
 }
 
@@ -191,13 +191,24 @@ export function checkBounds(row, col) {
  * @returns {boolean} If the particle was moved or not
  */
 export function moveParticle(row, col, newRow, newCol, swap) {
+
     // Check if location is valid
     if (!checkBounds(row, col) || !checkBounds(newRow, newCol)) {
         return false;
     }
     // Check for existing particle
     if (getParticle(newRow, newCol)) {
-        return false;
+        // If there is a particle but we can swap then flip the particles
+        if (swap && swap(getParticle(newRow, newCol))) {
+            const temp = grid[newRow][newCol];
+            grid[newRow][newCol] = grid[row][col];
+            grid[row][col] = temp;
+            return true;
+        }
+        else {
+            // If we can't swap then don't move
+            return false;
+        }
     }
     // Move a particle from (row, col) to (newRow, newCol)
     grid[newRow][newCol] = grid[row][col];
