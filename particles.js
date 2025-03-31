@@ -73,17 +73,24 @@ export class Water extends Particle {
     }
 
     update(row, col) {
-        // Move to random location
+        // Change dirt to grass on contact
+        if (getParticle(row+1, col)?.type == "dirt") {
+            setParticle(row+1, col, new Grass());
+            setParticle(row, col, null);
+            return;
+        }
+
+        // 1/64 chance, move to random location
         if (!getRandomInt(0, 63)) {
             moveParticle(row, col, getRandomInt(0, canvas.width), getRandomInt(0, canvas.height), super.swap)
         }
 
-        // Try to move up
+        // 1/64 chance, move up
         if (!getRandomInt(0,63) && !getParticle(row-1, col)) {
             moveParticle(row, col, row-1, col, super.swap)
         }
 
-        // Try to move diagonal
+        // 1/4 chance, move diagonal
         if (!getRandomInt(0,3) && !getParticle(row+1, col-1)) {
             moveParticle(row, col, row+1, col-1, super.swap)
         }
@@ -91,17 +98,47 @@ export class Water extends Particle {
             moveParticle(row, col, row+1, col+1, super.swap)
         }
 
-        // Try to move down
+        // Default option: move directly down
         if (getRandomInt(0,2) && !getParticle(row+1, col)) {
             moveParticle(row, col, row+1, col, super.swap);
         }
 
-        // Move left or right
+        // Can't move down: move left or right
         if (getRandomInt(0, 1) && !getParticle(row, col+1)) {
             moveParticle(row, col, row, col+1, super.swap);
         }
         else if (!getParticle(row, col-1)) {
             moveParticle(row, col, row, col-1, super.swap);
+        }
+    }
+}
+
+export class Stone extends Particle {
+    constructor() {
+        super();
+        this.color = "gray";
+        this.type = "stone";
+    }
+}
+
+export class Dirt extends Sand {
+    constructor() {
+        super();
+        this.color = "brown";
+        this.type = "dirt";
+    }
+}
+
+export class Grass extends Sand {
+    constructor() {
+        super();
+        this.color = "green";
+        this.type = "grass";
+    }
+
+    update(row, col) {
+        if (!getRandomInt(0,1027)) {
+            setParticle(row, col, new Dirt());
         }
     }
 }
@@ -119,5 +156,10 @@ export function checkParticleType(value) {
     if (value == "Water") {
         return new Water();
     }
-    // TODO create new particles
+    if (value == "Stone") {
+        return new Stone();
+    }
+    if (value == "Dirt") {
+        return new Dirt();
+    }
 }
