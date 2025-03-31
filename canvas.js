@@ -238,3 +238,22 @@ export function redraw() {
         }
     }
 }
+
+/**
+ * Check surroundings for particle interaction
+ */
+export function getContact(row, col, type) {
+    if (getParticle(row+1, col)?.type == type) {
+        return true;
+    }
+    if (getParticle(row-1, col)?.type == type) {
+        return true;
+    }
+    if (getParticle(row, col-1)?.type == type) {
+        return true;
+    }
+    if (getParticle(row, col+1)?.type == type) {
+        return true;
+    }
+    return null;
+}
