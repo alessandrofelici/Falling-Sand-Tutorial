@@ -241,19 +241,20 @@ export function redraw() {
 
 /**
  * Check surroundings for particle interaction
+ * If true, return that location
  */
 export function getContact(row, col, type) {
     if (getParticle(row+1, col)?.type == type) {
-        return true;
+        return [row+1, col];
     }
     if (getParticle(row-1, col)?.type == type) {
-        return true;
+        return [row-1, col];
     }
     if (getParticle(row, col-1)?.type == type) {
-        return true;
+        return [row, col-1];
     }
     if (getParticle(row, col+1)?.type == type) {
-        return true;
+        return [row, col+1];
     }
     return null;
 }

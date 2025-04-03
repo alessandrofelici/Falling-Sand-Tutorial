@@ -72,7 +72,18 @@ export class Water extends Particle {
         this.type = "water";
     }
 
+    swap(other) {
+        // Make water fall under steam
+        return other.type == "steam";
+    }
+
     update(row, col) {
+        // Evaporate on contact
+        if (getContact(row, col, "fire")) {
+            setParticle(row, col, new Steam());
+            return;
+        }
+
         // Change dirt to grass on contact
         if (getParticle(row+1, col)?.type == "dirt") {
             setParticle(row+1, col, new Grass());
@@ -83,32 +94,38 @@ export class Water extends Particle {
         // 1/1024 chance, move to random location
         if (!getRandomInt(0, 1023)) {
             moveParticle(row, col, getRandomInt(0, canvas.width), getRandomInt(0, canvas.height), super.swap)
+            return;
         }
 
         // 1/64 chance, move up
         if (!getRandomInt(0,63) && !getParticle(row-1, col)) {
-            moveParticle(row, col, row-1, col, super.swap)
+            moveParticle(row, col, row-1, col, this.swap)
+            return;
         }
 
         // 1/4 chance, move diagonal
-        if (!getRandomInt(0,3) && !getParticle(row+1, col-1)) {
-            moveParticle(row, col, row+1, col-1, super.swap)
-        }
-        if (!getRandomInt(0,3) && !getParticle(row+1, col+1)) {
-            moveParticle(row, col, row+1, col+1, super.swap)
+        if (!getRandomInt(0,3)) {
+            if (!getRandomInt(0,1) && !getParticle(row+1, col-1)) {
+                moveParticle(row, col, row+1, col-1, this.swap);
+                return;
+            }
+            else if (!getParticle(row+1, col+1)) {
+                moveParticle(row, col, row+1, col+1, this.swap);
+                return;
+            }
         }
 
         // Default option: move directly down
-        if (getRandomInt(0,2) && !getParticle(row+1, col)) {
-            moveParticle(row, col, row+1, col, super.swap);
+        if (getRandomInt(0,2)) {
+            moveParticle(row, col, row+1, col, this.swap);
         }
 
         // Can't move down: move left or right
         if (getRandomInt(0, 1) && !getParticle(row, col+1)) {
-            moveParticle(row, col, row, col+1, super.swap);
+            moveParticle(row, col, row, col+1, this.swap);
         }
         else if (!getParticle(row, col-1)) {
-            moveParticle(row, col, row, col-1, super.swap);
+            moveParticle(row, col, row, col-1, this.swap);
         }
     }
 }
@@ -221,10 +238,15 @@ export class Wood extends Stone {
     }
 
     update(row, col) {
+        // Absorb water
         if (getContact(row, col, "water") && this.endurance < 150) {
+            const otherRow = getContact(row, col, "water")[0];
+            const otherCol = getContact(row, col, "water")[1];
             this.endurance += 100; 
+            setParticle(otherRow, otherCol, null)
         }
 
+        // Burn on contact with fire
         if (getContact(row, col, "fire")) {
             this.endurance -= 2;
             if (this.endurance <= 0) {
@@ -232,6 +254,7 @@ export class Wood extends Stone {
             }
         }
         
+        // Change color after burnt or absorbing water
         if (this.endurance <= 50) {
             this.color = "#1a0d00";
             this.burnt = true;
@@ -241,6 +264,52 @@ export class Wood extends Stone {
         }
         else if (!this.burnt){
             this.color = "#663300";
+        }
+    }
+}
+
+export class Steam extends Particle {
+    constructor() {
+        super();
+        this.color = "gray";
+        this.type = "steam";
+    }
+
+    update(row, col) {
+        // 1/2048 chance, disappear
+        if (!getRandomInt(0, 2047)) {
+            setParticle(row, col, null);
+            return;
+        }
+
+        // 1/2048 chance, condensate
+        if (!getRandomInt(0, 2047)) {
+            setParticle(row, col, new Water());
+            return;
+        }
+
+        // 1/4 chance, move diagonal
+        if (!getRandomInt(0,3) && !getParticle(row-1, col-1)) {
+            moveParticle(row, col, row-1, col-1, super.swap);
+            return;
+        }
+        if (!getRandomInt(0,3) && !getParticle(row+1, col+1)) {
+            moveParticle(row, col, row-1, col+1, super.swap);
+            return;
+        }
+
+        // Default option: move directly up
+        if (getRandomInt(0,2) && !getParticle(row-1, col)) {
+            moveParticle(row, col, row-1, col, super.swap);
+            return;
+        }
+
+        // Can't move down: move left or right
+        if (getRandomInt(0, 1) && !getParticle(row, col+1)) {
+            moveParticle(row, col, row, col+1, super.swap);
+        }
+        else if (!getParticle(row, col-1)) {
+            moveParticle(row, col, row, col-1, super.swap);
         }
     }
 }
@@ -269,5 +338,8 @@ export function checkParticleType(value) {
     }
     if (value == "Wood") {
         return new Wood();
+    }
+    if (value == "Steam") {
+        return new Steam();
     }
 }
