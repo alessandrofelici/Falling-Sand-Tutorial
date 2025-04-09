@@ -244,15 +244,19 @@ export function redraw() {
  * If true, return that location
  */
 export function getContact(row, col, type) {
+    // Check Below
     if (getParticle(row+1, col)?.type == type) {
         return [row+1, col];
     }
+    // Check Above
     if (getParticle(row-1, col)?.type == type) {
         return [row-1, col];
     }
+    // Check Left
     if (getParticle(row, col-1)?.type == type) {
         return [row, col-1];
     }
+    // Check Right
     if (getParticle(row, col+1)?.type == type) {
         return [row, col+1];
     }

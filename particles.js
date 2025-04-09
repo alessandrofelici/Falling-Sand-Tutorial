@@ -78,6 +78,20 @@ export class Water extends Particle {
     }
 
     update(row, col) {
+        // Freeze on contact with frost particle
+        if (getContact(row, col, "frost")) {
+            setParticle(row, col, new Ice());
+            return;
+        }
+
+        // Chance to freeze on contact with ice
+        if (getContact(row, col, "ice")) {
+            if (!getRandomInt(0,127)) {
+                setParticle(row, col, new Ice());
+                return;
+            }
+        }
+
         // Evaporate on contact
         if (getContact(row, col, "fire")) {
             setParticle(row, col, new Steam());
@@ -271,7 +285,7 @@ export class Wood extends Stone {
 export class Steam extends Particle {
     constructor() {
         super();
-        this.color = "gray";
+        this.color = "#D3D3D3";
         this.type = "steam";
     }
 
@@ -314,6 +328,81 @@ export class Steam extends Particle {
     }
 }
 
+class Acid extends Water {
+    constructor() {
+        super();
+        this.type = "acid";
+        this.color = "#39FF14";
+    }
+
+    update(row, col) {
+        super.update(row, col);
+        // Destory other particles on contact
+        if (getParticle(row+1,col)?.type != "acid" && getParticle(row+1,col)?.type != null) {
+            setParticle(row+1,col,null);
+            setParticle(row-1,col,null);
+            setParticle(row,col+1,null);
+            setParticle(row,col-1,null);
+        }
+
+        if (!getRandomInt(0,31)) {
+            setParticle(row, col, null)
+        }
+    }
+}
+
+// Ice will melt over time
+// May turn water into ice
+class Ice extends Sand {
+    constructor () {
+        super();
+        this.type = "ice";
+        this.color = "#ADD8E6";
+    }
+
+    update(row, col) {
+        super.update(row, col);
+
+        if (!getRandomInt(0,31)) {
+            setParticle(row, col, new Water());
+        }
+    }
+}
+
+class Electron extends Particle {
+    constructor() {
+        super();
+        this.type = "electron";
+        this.color = "yellow";
+    }
+
+    update(row, col) {
+        // Move one place in any direction at random
+        const num = getRandomInt(0,3);
+        if (num == 0) {
+            moveParticle(row, col, row+1, col, super.swap);
+        }
+        if (num == 1) {
+            moveParticle(row, col, row-1, col, super.swap);
+        }
+        if (num == 2) {
+            moveParticle(row, col, row, col+1, super.swap);
+        }
+        if (num == 3) {
+            moveParticle(row, col, row, col-1, super.swap);
+        }
+    }
+}
+
+// Particle can freeze water into ice
+class Frost extends Sand {
+    constructor() {
+        super();
+        this.type = "frost";
+        this.color = "#ADD8E6";
+    }
+}
+
 /**
  * Create particle based on dropdown name
  * 
@@ -341,5 +430,14 @@ export function checkParticleType(value) {
     }
     if (value == "Steam") {
         return new Steam();
+    }
+    if (value == "Acid") {
+        return new Acid();
+    }
+    if (value == "Frost") {
+        return new Frost();
+    }
+    if (value == "Electron") {
+        return new Electron();
     }
 }
